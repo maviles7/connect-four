@@ -45,6 +45,10 @@ function init() {
 function handleDrop(evt) {
     // get the index of marker
     const columnIdx = markersEl.indexOf(evt.target);
+    //gaurd against missing marker error 
+    if (columnIdx === '1') {
+        return; 
+    }
     //console.log(columnIdx);
     // create "shortcut" to the column that needs to be updated
     const columnArr = board[columnIdx];
@@ -60,13 +64,31 @@ function handleDrop(evt) {
 
 // return null (game still in play), 1/-1 (there is a winner), tie (game has tied)
 function getWinner(columnIdx, rowIdx) {
-    return checkVeritcal(columnIdx, rowIdx) //|| checkHorizontal()
+    return checkVeritcal(columnIdx, rowIdx) || checkHorizontal(columnIdx, rowIdx) || checkFwSlash(columnIdx, rowIdx) || checkBkSlash(columnIdx, rowIdx); 
+}; 
+
+function checkBkSlash(columnIdx, rowIdx) {
+    const numUpDiagonal = countAdj(columnIdx, rowIdx, -1, 1); 
+    const numDownDiagonal = countAdj(columnIdx, rowIdx, 1, -1);
+    return numUpDiagonal + numDownDiagonal >= 3 ? turn : null; 
+}; 
+
+function checkFwSlash(columnIdx, rowIdx) {
+    const numUpDiagonal = countAdj(columnIdx, rowIdx, 1, 1); 
+    const numDownDiagonal = countAdj(columnIdx, rowIdx, -1, -1);
+    return numUpDiagonal + numDownDiagonal >= 3 ? turn : null; 
+}; 
+
+function checkHorizontal(columnIdx, rowIdx) {
+    const numLeft = countAdj(columnIdx, rowIdx, -1, 0); 
+    const numRight = countAdj(columnIdx, rowIdx, 1, 0);
+    return numLeft + numRight >= 3 ? turn : null; 
 }; 
 
 function checkVeritcal(columnIdx, rowIdx) {
     const numBelow = countAdj(columnIdx, rowIdx, 0, -1); 
     return numBelow === 3 ? turn : null; 
-}
+}; 
 
 function countAdj(columnIdx, rowIdx, columnOffSet, rowOffSet) {
     let count = 0; 
@@ -94,6 +116,11 @@ function renderControls() {
     // <conditional expression > ? <truthy expression> : <falsy expression>;
     // can typically replase if else 
     playAgainBtn.style.visibility = winner ? 'visible' : 'hidden';
+    // getting colum marker to disapear when full or game is over
+    markersEl.forEach((markerEl, columnIdx) => {
+        const showMarker =  board[columnIdx].includes(null);
+        markerEl.style.visibility = showMarker && !winner ? 'visible' : 'hidden';
+    })
 }; 
 
 function renderMessage () {
@@ -119,6 +146,3 @@ function renderBoard() {
       });
     });
   }; 
-
-  
-    
